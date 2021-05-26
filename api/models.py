@@ -4,15 +4,22 @@ from datetime import datetime
 from api import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+import json
+
+# class MyEncoder(json.JSONEncoder):
+#     def default(self, obj):
+#         if hasattr(obj, '__json__'):
+#             return obj.__json__()
+#         return json.JSONEncoder.default(self, obj)
 
 class User(db.Model):
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        if self.email is not None and self.avatar_hash is None:
-            self.avatar_hash = self.get_avatar()
+        if self.email is not None and self.avatar is None:
+            self.avatar = self.generate_avatar()
 
-        if self.email == current_app.config['ADMIN_MAIL']:
+        if self.email == current_app.config['APP_ADMIN']:
             self.is_admin = True
 
     __tablename__="users"
@@ -39,7 +46,7 @@ class User(db.Model):
         self.pass_hash = generate_password_hash(password)
 
     def verify_password(self, password):
-        return check_password_hash(password)
+        return check_password_hash(self.pass_hash, password)
 
     def generate_avatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
@@ -103,7 +110,7 @@ class Task(db.Model):
     completed = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
-    labels = db.relationship('ProjectLabel', backref='tasks', lazy='dynamic', cascade="all, delete")
+    labels = db.relationship('TaskLabel', backref='tasks', lazy='dynamic', cascade="all, delete")
 
 class Label(db.Model):
 
