@@ -8,6 +8,7 @@ class Config():
 	SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32)
 	SQLALCHEMY_COMMIT_ON_TEARDOWN = True
 	SQLALCHEMY_TRACK_MODIFICATIONS = True
+	APP_ADMIN = os.environ.get('ADMIN_MAIL')
 
 	@staticmethod
 	def init_app(app):
