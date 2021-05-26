@@ -87,8 +87,9 @@ class Project(db.Model):
     name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text, nullable=False)
     use_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    created = db.Column(db.Date, default=datetime.now())
-    ends = db.Column(db.Date, nullable=False)
+    created = db.Column(db.DateTime, default=datetime.now())
+    ends = db.Column(db.DateTime, nullable=False)
+    completed = db.Column(db.Boolean, default=False)
     tasks = db.relationship('Task', backref='project', lazy='dynamic', cascade="all, delete")
     labels = db.relationship('ProjectLabel', backref='projects', lazy='dynamic', cascade="all, delete")
 
@@ -97,6 +98,9 @@ class Task(db.Model):
     __tablename__="tasks"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    due = db.Column(db.DateTime)
+    completed = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
     labels = db.relationship('ProjectLabel', backref='tasks', lazy='dynamic', cascade="all, delete")
