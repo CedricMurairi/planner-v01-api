@@ -1,7 +1,7 @@
 from flask import request, current_app
 import hashlib
 from datetime import datetime
-from app import db
+from api import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
@@ -51,14 +51,21 @@ class User(db.Model):
 
     def generate_auth_token(self, expiration=2592000):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id})
+        return s.dumps({'id': self.id, 'email': self.email})
 
-    def verify_auth_token(self):
-        pass
+    def verify_token(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('id') != self.id or data.get('email') != self.email:
+            return False
+        return True
 
-    def generate_activation_token(self, expiration=3600):
+    def generate_verification_token(self, expiration=86400):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id})
+        return s.dumps({'id': self.id, 'email': self.email})
 
     def activate(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -66,7 +73,7 @@ class User(db.Model):
             data = s.loads(token)
         except:
             return False
-        if data.get('confirm') != self.id:
+        if data.get('id') != self.id or data.get('email') != self.email:
             return False
         self.activated = True
         db.session.add(self)
@@ -83,7 +90,6 @@ class Project(db.Model):
     created = db.Column(db.Date, default=datetime.now())
     ends = db.Column(db.Date, nullable=False)
     tasks = db.relationship('Task', backref='project', lazy='dynamic', cascade="all, delete")
-    # Check many to many relationship
     labels = db.relationship('ProjectLabel', backref='projects', lazy='dynamic', cascade="all, delete")
 
 class Task(db.Model):
@@ -93,7 +99,6 @@ class Task(db.Model):
     name = db.Column(db.String(128), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
-    # Check many to many relationship
     labels = db.relationship('ProjectLabel', backref='tasks', lazy='dynamic', cascade="all, delete")
 
 class Label(db.Model):
@@ -103,27 +108,17 @@ class Label(db.Model):
     name = db.Column(db.String(64), nullable=False)
     color = db.Column(db.String())
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    project_labels = db.relationship('ProjectLabel', backref='label', lazy='dynamic', cascade="all, delete")
+    task_labels = db.relationship('TaskLabel', backref='label', lazy='dynamic', cascade="all, delete")
 
-projectslabels = db.Table('tasklabels',
-    db.Column('project_id', db.Integer, db.ForeignKey('projects.id'), primary_key=True),
-    db.Column('label_id', db.Integer, db.ForeignKey('labels.id'), primary_key=True)
-)
+class ProjectLabel(db.Model):
 
-# class ProjectLabel(db.Model):
+    __tablename__="projectlabels"
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), primary_key=True)
+    label_id = db.Column(db.Integer, db.ForeignKey('labels.id'), primary_key=True)
 
-#     __tablename__="projectlabels"
-#     id = db.Column(db.Integer, primary_key=True)
-#     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'))
-#     label_id = db.Column(db.Integer, db.ForeignKey('labels.id'))
+class TaskLabel(db.Model):
 
-tasklabels = db.Table('tasklabels',
-    db.Column('task_id', db.Integer, db.ForeignKey('tasks.id'), primary_key=True),
-    db.Column('label_id', db.Integer, db.ForeignKey('labels.id'), primary_key=True)
-)
-
-# class TaskLabel(db.Model):
-
-#     __tablename__="tasklabels"
-#     id = db.Column(db.Integer, primary_key=True)
-#     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
-#     label_id = db.Column(db.Integer, db.ForeignKey('labels.id'))
+    __tablename__="tasklabels"
+    task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), primary_key=True)
+    label_id = db.Column(db.Integer, db.ForeignKey('labels.id'), primary_key=True)

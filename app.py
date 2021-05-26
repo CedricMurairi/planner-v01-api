@@ -1,7 +1,7 @@
 import os
 from api import create_app, db
 from flask_script import Manager, Shell
-from api.models import User, Project, Task, Label, taskslabels, projectslabels
+from api.models import User, Project, Task, Label, TaskLabel, ProjectLabel
 from flask_migrate import Migrate
 
 
@@ -17,7 +17,7 @@ def create_table():
 	print('Tables created')
 
 def make_shell_context():
-	return dict(app=app, db=db, User=User, Project=Project, Task=Task, Label=Label, taskslabels=taskslabels, projectslabels=projectslabels)
+	return dict(app=app, db=db, User=User, Project=Project, Task=Task, Label=Label, TaskLabel=TaskLabel, ProjectLabel=ProjectLabel)
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 
