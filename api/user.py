@@ -1,9 +1,70 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, current_app
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from functools import wraps
 from .models import User
 from . import db
 from sqlalchemy import or_
 
 user = Blueprint('user', __name__)
+
+def auth_required(view):
+    @wraps(view)
+    def decorated_function(*args, **kwargs):
+        if not 'Authorization' in request.headers:
+            return {
+                "message": "Did not find any Token"
+            }, 401
+        try:
+            s = Serializer(current_app.config['SECRET_KEY'])
+            raw_token = request.headers['Authorization']
+            token = str.replace(str(raw_token), 'Bearer ', '')
+            data = s.loads(token)
+            user = User.query.filter_by(id=data.get('id'), email=data.get('email')).first()
+            if not user:
+                return {
+                    "message": "Couldn't get data from Token, either corrupt or expired"
+                }, 401
+            return view(*args, **kwargs)
+
+        except Exception as e:
+            return {
+                "message": "Could not deal with Token, either corrupt or expired"
+            }, 401
+
+        return view(*args, **kwargs)
+
+    return decorated_function
+
+def admin_auth_required(view):
+    @wraps(view)
+    def decorated_function(*args, **kwargs):
+        if not 'Authorization' in request.headers:
+            return {
+                "message": "Did not find any Token"
+            }, 401
+        try:
+            s = Serializer(current_app.config['SECRET_KEY'])
+            raw_token = request.headers['Authorization']
+            token = str.replace(str(raw_token), 'Bearer ', '')
+            data = s.loads(token)
+            user = User.query.filter_by(id=data.get('id'), email=data.get('email')).first()
+            if not user or not user.is_admin:
+                print(data)
+                return {
+                    "message": "Either token is corrupt or you're not authorized to access"
+                }, 401
+            print(args)
+            return view(*args, **kwargs)
+
+        except Exception as e:
+            return {
+                "message": "Could not deal with Token, either corrupt or expired"
+            }, 401
+
+        return view(*args, **kwargs)
+
+    return decorated_function
+
 
 @user.route('/login', methods=['POST'])
 def login():
@@ -80,6 +141,7 @@ def register():
     }, 200
 
 @user.route('/users/all', methods=['GET'])
+@admin_auth_required
 def get_users():
     users = User.query.all()
     if len(users) > 0:
@@ -108,6 +170,7 @@ def get_users():
     }, 404
 
 @user.route('/users/<int:id>', methods=['GET'])
+@admin_auth_required
 def get_user(id):
     user = User.query.get(id)
     if user:
@@ -133,6 +196,7 @@ def get_user(id):
     }, 404
 
 @user.route('/users/<int:id>', methods=['DELETE'])
+@auth_required
 def delete_user(id):
     user = User.query.get(id)
     if user:
@@ -147,6 +211,7 @@ def delete_user(id):
     }, 404
 
 @user.route('/users/<int:id>', methods=['PUT'])
+@auth_required
 def update(id):
     user = User.query.get(id)
     if user:
