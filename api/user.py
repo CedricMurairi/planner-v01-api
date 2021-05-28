@@ -49,11 +49,9 @@ def admin_auth_required(view):
             data = s.loads(token)
             user = User.query.filter_by(id=data.get('id'), email=data.get('email')).first()
             if not user or not user.is_admin:
-                print(data)
                 return {
                     "message": "Either token is corrupt or you're not authorized to access"
                 }, 401
-            print(args)
             return view(*args, **kwargs)
 
         except Exception as e:
