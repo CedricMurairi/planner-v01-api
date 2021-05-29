@@ -208,6 +208,9 @@ def delete_user(id, u=None):
 @auth_required
 def update(id, u=None):
     user = User.query.get(id)
+    if not request.json:
+        abort(400)
+        
     if user.id != u.id and not user.is_admin:
         return {
             "message": "No read or write access to endpoint"
