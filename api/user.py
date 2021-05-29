@@ -24,12 +24,11 @@ def auth_required(view):
                 return {
                     "message": "Couldn't get data from Token, either corrupt or expired"
                 }, 401
-            return view(u=user, *args, **kwargs)
 
         except Exception as e:
             return {
                 "message": e.__str__()
-            }
+            }, 401
 
         return view(u=user, *args, **kwargs)
 
@@ -48,15 +47,14 @@ def admin_auth_required(view):
             token = str.replace(str(raw_token), 'Bearer ', '')
             data = s.loads(token)
             user = User.query.filter_by(id=data.get('id'), email=data.get('email')).first()
-            if not user or not user.is_admin:
+            if not user and not user.is_admin:
                 return {
                     "message": "Either token is corrupt or you're not authorized to access"
                 }, 401
-            return view(u=user, *args, **kwargs)
 
         except Exception as e:
             return {
-                "message": "Could not deal with Token, either corrupt or expired"
+                "message": e.__str__()
             }, 401
 
         return view(u=user, *args, **kwargs)
