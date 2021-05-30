@@ -93,7 +93,7 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    use_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created = db.Column(db.DateTime, default=datetime.now())
     ends = db.Column(db.DateTime, nullable=False)
     completed = db.Column(db.Boolean, default=False)

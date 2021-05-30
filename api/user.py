@@ -24,14 +24,13 @@ def auth_required(view):
                 return {
                     "message": "Couldn't get data from Token, either corrupt or expired"
                 }, 401
-            return view(*args, **kwargs)
 
         except Exception as e:
             return {
-                "message": "Could not deal with Token, either corrupt or expired"
+                "message": e.__str__()
             }, 401
 
-        return view(*args, **kwargs)
+        return view(u=user, *args, **kwargs)
 
     return decorated_function
 
@@ -48,18 +47,17 @@ def admin_auth_required(view):
             token = str.replace(str(raw_token), 'Bearer ', '')
             data = s.loads(token)
             user = User.query.filter_by(id=data.get('id'), email=data.get('email')).first()
-            if not user or not user.is_admin:
+            if not user and not user.is_admin:
                 return {
                     "message": "Either token is corrupt or you're not authorized to access"
                 }, 401
-            return view(*args, **kwargs)
 
         except Exception as e:
             return {
-                "message": "Could not deal with Token, either corrupt or expired"
+                "message": e.__str__()
             }, 401
 
-        return view(*args, **kwargs)
+        return view(u=user, *args, **kwargs)
 
     return decorated_function
 
@@ -82,9 +80,6 @@ def login():
                 "username": user.username,
                 "name": user.name,
                 "email": user.email,
-                "tasks": [task for task in user.tasks],
-                "projects": [project for project in user.projects],
-                "labels": [label for label in user.labels],
                 "is_admin": user.is_admin,
                 "activated": user.activated,
                 "suspended": user.suspended,
@@ -127,9 +122,6 @@ def register():
             "username": user.username,
             "name": user.name,
             "email": user.email,
-            "tasks": [task for task in user.tasks],
-            "projects": [project for project in user.projects],
-            "labels": [label for label in user.labels],
             "is_admin": user.is_admin,
             "activated": user.activated,
             "suspended": user.suspended,
@@ -140,7 +132,7 @@ def register():
 
 @user.route('/users/all', methods=['GET'])
 @admin_auth_required
-def get_users():
+def get_users(u=None):
     users = User.query.all()
     if len(users) > 0:
         return {
@@ -151,9 +143,6 @@ def get_users():
                     "username": user.username,
                     "name": user.name,
                     "email": user.email,
-                    "tasks": [task for task in user.tasks],
-                    "projects": [project for project in user.projects],
-                    "labels": [label for label in user.labels],
                     "is_admin": user.is_admin,
                     "activated": user.activated,
                     "suspended": user.suspended,
@@ -168,9 +157,14 @@ def get_users():
     }, 404
 
 @user.route('/users/<int:id>', methods=['GET'])
-@admin_auth_required
-def get_user(id):
+@auth_required
+def get_user(id, u=None):
     user = User.query.get(id)
+    if user.id != u.id and not u.is_admin:
+        return {
+            "message": "No read or write access to endpoint"
+        }, 403
+
     if user:
         return {
             "message": "Retrieved successful",
@@ -179,9 +173,6 @@ def get_user(id):
                 "username": user.username,
                 "name": user.name,
                 "email": user.email,
-                "tasks": [task for task in user.tasks],
-                "projects": [project for project in user.projects],
-                "labels": [label for label in user.labels],
                 "is_admin": user.is_admin,
                 "activated": user.activated,
                 "suspended": user.suspended,
@@ -195,8 +186,13 @@ def get_user(id):
 
 @user.route('/users/<int:id>', methods=['DELETE'])
 @auth_required
-def delete_user(id):
+def delete_user(id, u=None):
     user = User.query.get(id)
+    if user.id != u.id and not user.is_admin:
+        return {
+            "message": "No read or write access to endpoint"
+        }, 403
+
     if user:
         db.session.delete(user)
         db.session.commit()
@@ -210,8 +206,16 @@ def delete_user(id):
 
 @user.route('/users/<int:id>', methods=['PUT'])
 @auth_required
-def update(id):
+def update(id, u=None):
     user = User.query.get(id)
+    if not request.json:
+        abort(400)
+        
+    if user.id != u.id and not user.is_admin:
+        return {
+            "message": "No read or write access to endpoint"
+        }, 403
+
     if user:
         email = request.json['email'] or user.email
         name = request.json['name'] or user.name
@@ -234,9 +238,6 @@ def update(id):
                 "username": user.username,
                 "name": user.name,
                 "email": user.email,
-                "tasks": [task for task in user.tasks],
-                "projects": [project for project in user.projects],
-                "labels": [label for label in user.labels],
                 "is_admin": user.is_admin,
                 "activated": user.activated,
                 "suspended": user.suspended,
