@@ -131,4 +131,21 @@ def get_tasks(u=None):
 
     abort(404)
 
+@task.route('/tasks/<int:id>', methods=['DELETE'])
+@auth_required 
+def delete_task(id, u=None):
+    task = Task.query.filter_by(id=id, user_id=u.id).first()
+
+    if task:
+        db.session.delete(task)
+        db.session.commit()
+
+        return {
+            "message": "Tasks deleted successfully"
+        }, 200
+
+    return {
+        "message": "Task not found"
+    }, 404
+
 
