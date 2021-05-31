@@ -69,3 +69,20 @@ def get_labels(u=None):
 
     abort(404)
 
+@label.route('/labels/<int:id>', methods=['DELETE'])
+@auth_required 
+def delete_label(id, u=None):
+    label = Label.query.filter_by(id=id, user_id=u.id).first()
+
+    if label:
+        db.session.delete(label)
+        db.session.commit()
+
+        return {
+            "message": "Labels deleted successfully"
+        }, 200
+
+    return {
+        "message": "Label not found"
+    }, 404
+
