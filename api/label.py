@@ -34,3 +34,19 @@ def create_label(u=None):
             "color": label.color,
         }
     }, 200
+
+@label.route('/labels/<int:id>', methods=['GET'])
+@auth_required
+def get_label(id, u=None):
+    label = Label.query.filter_by(id=id, user_id=u.id).first()
+    if not label:
+        abort(404)
+
+    return {
+        "message": "Label retrieved successfully",
+        "data": {
+            "id": label.id,
+            "name": label.name,
+            "color": label.color,
+        }
+    }, 200
