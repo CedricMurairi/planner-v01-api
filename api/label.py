@@ -86,3 +86,28 @@ def delete_label(id, u=None):
         "message": "Label not found"
     }, 404
 
+@label.route('/labels/<int:id>', methods=['PUT'])
+@auth_required 
+def uptade_label(id, u=None):
+    if not request.json:
+        abort(400)
+
+    label = Label.query.filter_by(id=id, user_id=u.id).first()
+    if label:
+        label.name = request.json.get("name") or label.name
+        label.color = request.json.get("color") or label.color
+        db.session.add(label)
+        db.session.commit()
+
+        return {
+            "message": "Labels updated successfully",
+            "data":{
+                "id": label.id,
+                "name": label.name,
+                "color": label.color,
+            }
+        }, 200
+
+    return {
+        "message": "Label not found"
+    }, 404
