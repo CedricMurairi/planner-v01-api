@@ -134,3 +134,47 @@ def delete_project(id, u=None):
         "message": "Project not found"
     }, 404
 
+@project.route('/projects/<int:id>', methods=['PUT'])
+@auth_required 
+def uptade_project(id, u=None):
+    if not request.json:
+        abort(400)
+
+    project = Project.query.filter_by(id=id, user_id=u.id).first()
+    project.name = request.json.get("name") or project.name
+    project.description = request.json.get("description") or project.description
+    vals = request.json.get('ends').split("-")
+    ends = datetime.datetime(int(vals[0]), int(vals[1]), int(vals[2]))
+    project.ends = ends or project.ends
+    project.completed = request.json.get("completed") or project.completed
+
+    db.session.add(project)
+    db.session.commit()
+
+    if project:
+        return {
+            "message": "Projects updated successfully",
+            "data":{
+                "id": project.id,
+                "name": project.name,
+                "description": project.description,
+                "creator": {
+                    "id": project.manager.id,
+                    "name": project.manager.name,
+                    "email": project.manager.email,
+                    "username": project.manager.username,
+                    "avatar": project.manager.avatar,
+                    "profile": project.manager.profile
+                },
+                "ends": project.ends,
+                "completed": project.completed,
+                "tasks": [task for task in project.tasks],
+                "labels": [label for label in project.labels]
+            }
+        }, 200
+
+    return {
+        "message": "Project not found"
+    }, 404
+
+
