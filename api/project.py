@@ -87,3 +87,33 @@ def get_project(id, u=None):
         }
     }, 200
 
+@project.route('/projects/all', methods=['GET'])
+@auth_required 
+def get_projects(u=None):
+    projects = Project.query.filter_by(user_id=u.id).all()
+    if len(projects) > 0:
+        return {
+            "message": "Projects retrieved successfully",
+            "data": [
+                {
+                    "id": project.id,
+                    "name": project.name,
+                    "description": project.description,
+                    "creator": {
+                        "id": project.manager.id,
+                        "name": project.manager.name,
+                        "email": project.manager.email,
+                        "username": project.manager.username,
+                        "avatar": project.manager.avatar,
+                        "profile": project.manager.profile
+                    },
+                    "ends": project.ends,
+                    "completed": project.completed,
+                    "tasks": [task for task in project.tasks],
+                    "labels": [label for label in project.labels]
+                } for project in projects
+            ]
+        }, 200
+
+    abort(404)
+
