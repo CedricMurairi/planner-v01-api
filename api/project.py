@@ -117,3 +117,20 @@ def get_projects(u=None):
 
     abort(404)
 
+@project.route('/projects/<int:id>', methods=['DELETE'])
+@auth_required 
+def delete_project(id, u=None):
+    project = Project.query.filter_by(id=id, user_id=u.id).first()
+
+    if project:
+        db.session.delete(project)
+        db.session.commit()
+
+        return {
+            "message": "Projects deleted successfully"
+        }, 200
+
+    return {
+        "message": "Project not found"
+    }, 404
+
