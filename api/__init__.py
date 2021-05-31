@@ -18,10 +18,12 @@ def create_app(config_name):
     from .user import user
     from .project import project
     from .task import task
+    from .label import label
 
     app.register_blueprint(user)
     app.register_blueprint(project)
     app.register_blueprint(task)
+    app.register_blueprint(label)
     
     @app.route('/welcome')
     def home():
