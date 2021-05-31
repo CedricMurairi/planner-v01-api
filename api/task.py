@@ -215,3 +215,26 @@ def delete_task_label(id, u=None):
     return {
         "message": "Label was deleted successfully"
     }, 200
+
+@task.route('/tasks/<int:id>/labels', methods=['POST'])
+@auth_required
+def add_task_label(id, u=None):
+    task = Task.query.get(id)
+    if not task.user_id == u.id:
+        abort(401)
+
+    if not request.json:
+        abort(400)
+
+    labels = request.json.get('labels')
+    if labels and len(labels > 0):
+        for label in labels:
+            if Label.query.get(label) and not TaskLabel.query.filter_by(label_id=label, task_id=id).first():
+                t_label = TaskLabel(task_id=id, label_id=label)
+                db.session.add(t_label)
+                db.session.commit()
+        return {
+            "message": "Label was deleted successfully"
+        }, 200
+
+    abort(400)
