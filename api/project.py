@@ -58,3 +58,32 @@ def create_project(u=None):
         }
     }
 
+@project.route('/projects/<int:id>', methods=['GET'])
+@auth_required
+def get_project(id, u=None):
+    project = Project.query.filter_by(id=id, user_id=u.id).first()
+    if not project:
+        abort(404)
+
+    return {
+        "message": "Project retrieved successfully",
+        "data": {
+            "id": project.id,
+            "name": project.name,
+            "description": project.description,
+            "creator": {
+                "id": project.manager.id,
+                "name": project.manager.name,
+                "email": project.manager.email,
+                "username": project.manager.username,
+                "avatar": project.manager.avatar,
+                "profile": project.manager.profile,
+            },
+            "created": project.created,
+            "ends": project.ends,
+            "completed": project.completed,
+            "tasks": [task for task in project.tasks],
+            "labels": [label for label in project.labels] 
+        }
+    }, 200
+
