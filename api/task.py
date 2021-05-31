@@ -196,3 +196,22 @@ def uptade_task(id, u=None):
         "message": "Task not found"
     }, 404
 
+@task.route('/tasks/<int:id>/labels', methods=['DELETE'])
+@auth_required
+def delete_task_label(id, u=None):
+    task = Task.query.get(id)
+    if not task.user_id == u.id:
+        abort(401)
+
+    if not request.json:
+        abort(400)
+
+    t_label = TaskLabel.query.filter_by(label_id=request.json.get('label'), task_id=id).first()
+    if not t_label:
+        abort(404)
+    db.session.delete(t_label)
+    db.session.commit()
+
+    return {
+        "message": "Label was deleted successfully"
+    }, 200
