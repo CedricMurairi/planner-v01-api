@@ -50,3 +50,22 @@ def get_label(id, u=None):
             "color": label.color,
         }
     }, 200
+
+@label.route('/labels/all', methods=['GET'])
+@auth_required 
+def get_labels(u=None):
+    labels = Label.query.filter_by(user_id=u.id).all()
+    if len(labels) > 0:
+        return {
+            "message": "Labels retrieved successfully",
+            "data": [
+                {
+                    "id": label.id,
+                    "name": label.name,
+                    "color": label.color,
+                } for label in labels
+            ]
+        }, 200
+
+    abort(404)
+
