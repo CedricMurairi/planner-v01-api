@@ -148,4 +148,51 @@ def delete_task(id, u=None):
         "message": "Task not found"
     }, 404
 
+@task.route('/tasks/<int:id>', methods=['PUT'])
+@auth_required 
+def uptade_task(id, u=None):
+    if not request.json:
+        abort(400)
+
+    task = Task.query.filter_by(id=id, user_id=u.id).first()
+    if task:
+        task.name = request.json.get("name") or task.name
+        task.description = request.json.get("description") or task.description
+        vals = request.json.get('due').split("-")
+        due = datetime.datetime(int(vals[0]), int(vals[1]), int(vals[2]))
+        task.due = due or task.due
+        task.completed = request.json.get("completed") or task.completed
+
+        db.session.add(task)
+        db.session.commit()
+
+        return {
+            "message": "Tasks updated successfully",
+            "data":{
+                "id": task.id,
+                "name": task.name,
+                "description": task.description,
+                "creator": {
+                    "id": task.creator.id,
+                    "name": task.creator.name,
+                    "email": task.creator.email,
+                    "username": task.creator.username,
+                    "avatar": task.creator.avatar,
+                    "profile": task.creator.profile
+                },
+                "project": {
+                    "id": task.project.id,
+                    "name": task.project.name,
+                    "description": task.project.description,
+                    "ends": task.project.ends
+                },
+                "due": task.due,
+                "completed": task.completed,
+                "labels": [label for label in task.labels]
+            }
+        }, 200
+
+    return {
+        "message": "Task not found"
+    }, 404
 
