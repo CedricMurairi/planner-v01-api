@@ -197,4 +197,25 @@ def delete_project_label(id, u=None):
         "message": "Label was deleted successfully"
     }, 200
 
+@project.route('/projects/<int:id>/labels', methods=['POST'])
+@auth_required
+def add_project_label(id, u=None):
+    project = Project.query.get(id)
+    if not project.user_id == u.id:
+        abort(401)
 
+    if not request.json:
+        abort(400)
+
+    labels = request.json.get('labels')
+    if labels and len(labels > 0):
+        for label in labels:
+            if Label.query.get(label) and not ProjectLabel.query.filter_by(label_id=label, project_id=id).first():
+                p_label = ProjectLabel(project_id=id, label_id=label)
+                db.session.add(p_label)
+                db.session.commit()
+        return {
+            "message": "Label was deleted successfully"
+        }, 200
+
+    abort(400)
