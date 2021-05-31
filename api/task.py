@@ -96,3 +96,39 @@ def get_task(id, u=None):
         }
     }, 200
 
+@task.route('/tasks/all', methods=['GET'])
+@auth_required 
+def get_tasks(u=None):
+    tasks = Task.query.filter_by(user_id=u.id).all()
+    if len(tasks) > 0:
+        return {
+            "message": "Tasks retrieved successfully",
+            "data": [
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "description": task.description,
+                    "creator": {
+                        "id": task.creator.id,
+                        "name": task.creator.name,
+                        "email": task.creator.email,
+                        "username": task.creator.username,
+                        "avatar": task.creator.avatar,
+                        "profile": task.creator.profile
+                    },
+                    "project": {
+                        "id": task.project.id,
+                        "name": task.project.name,
+                        "description": task.project.description,
+                        "ends": task.project.ends
+                    },
+                    "due": task.due,
+                    "completed": task.completed,
+                    "labels": [label for label in task.labels]
+                } for task in tasks
+            ]
+        }, 200
+
+    abort(404)
+
+
