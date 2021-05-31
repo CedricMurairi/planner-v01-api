@@ -177,4 +177,24 @@ def uptade_project(id, u=None):
         "message": "Project not found"
     }, 404
 
+@project.route('/projects/<int:id>/labels', methods=['DELETE'])
+@auth_required
+def delete_project_label(id, u=None):
+    project = Project.query.get(id)
+    if not project.user_id == u.id:
+        abort(401)
+
+    if not request.json:
+        abort(400)
+
+    p_label = ProjectLabel.query.filter_by(label_id=request.json.get('label'), project_id=id).first()
+    if not p_label:
+        abort(404)
+    db.session.delete(p_label)
+    db.session.commit()
+
+    return {
+        "message": "Label was deleted successfully"
+    }, 200
+
 
