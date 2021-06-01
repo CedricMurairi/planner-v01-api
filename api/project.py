@@ -53,8 +53,23 @@ def create_project(u=None):
             "created": project.created,
             "ends": project.ends,
             "completed": project.completed,
-            "tasks": [task for task in project.tasks],
-            "labels": [label for label in project.labels]
+            "tasks": [
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "description": task.description,
+                    "due": task.due,
+                    "completed": task.completed,
+                    "labels": [label for label in task.labels]
+                } for task in project.tasks
+            ],
+            "labels": [
+                {
+                    "id": label.label.id,
+                    "name": label.label.name,
+                    "color": label.label.name
+                } for label in project.labels
+            ]
         }
     }
 
@@ -82,8 +97,23 @@ def get_project(id, u=None):
             "created": project.created,
             "ends": project.ends,
             "completed": project.completed,
-            "tasks": [task for task in project.tasks],
-            "labels": [label for label in project.labels] 
+            "tasks": [
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "description": task.description,
+                    "due": task.due,
+                    "completed": task.completed,
+                    "labels": [label for label in task.labels]
+                } for task in project.tasks
+            ],
+            "labels": [
+                {
+                    "id": label.label.id,
+                    "name": label.label.name,
+                    "color": label.label.name
+                } for label in project.labels
+            ] 
         }
     }, 200
 
@@ -109,8 +139,23 @@ def get_projects(u=None):
                     },
                     "ends": project.ends,
                     "completed": project.completed,
-                    "tasks": [task for task in project.tasks],
-                    "labels": [label for label in project.labels]
+                    "tasks": [
+                        {
+                            "id": task.id,
+                            "name": task.name,
+                            "description": task.description,
+                            "due": task.due,
+                            "completed": task.completed,
+                            "labels": [label for label in task.labels]
+                        } for task in project.tasks
+                    ],
+                    "labels": [
+                        {
+                            "id": label.label.id,
+                            "name": label.label.name,
+                            "color": label.label.name
+                        } for label in project.labels
+                    ]
                 } for project in projects
             ]
         }, 200
@@ -168,8 +213,23 @@ def uptade_project(id, u=None):
                 },
                 "ends": project.ends,
                 "completed": project.completed,
-                "tasks": [task for task in project.tasks],
-                "labels": [label for label in project.labels]
+                "tasks": [
+                    {
+                        "id": task.id,
+                        "name": task.name,
+                        "description": task.description,
+                        "due": task.due,
+                        "completed": task.completed,
+                        "labels": [label for label in task.labels]
+                    } for task in project.tasks
+                ],
+                "labels": [
+                    {
+                        "id": label.label.id,
+                        "name": label.label.name,
+                        "color": label.label.name
+                    } for label in project.labels
+                ]
             }
         }, 200
 
@@ -208,14 +268,15 @@ def add_project_label(id, u=None):
         abort(400)
 
     labels = request.json.get('labels')
-    if labels and len(labels > 0):
+    print(labels)
+    if labels and len(labels) > 0:
         for label in labels:
             if Label.query.get(label) and not ProjectLabel.query.filter_by(label_id=label, project_id=id).first():
                 p_label = ProjectLabel(project_id=id, label_id=label)
                 db.session.add(p_label)
                 db.session.commit()
         return {
-            "message": "Label was deleted successfully"
+            "message": "Label was added successfully"
         }, 200
 
     abort(400)
