@@ -60,7 +60,13 @@ def create_project(u=None):
                     "description": task.description,
                     "due": task.due,
                     "completed": task.completed,
-                    "labels": [label for label in task.labels]
+                    "labels": [
+                        {
+                            "id": label.label.id,
+                            "name": label.label.name,
+                            "color": label.label.name
+                        } for label in task.labels
+                    ]
                 } for task in project.tasks
             ],
             "labels": [
@@ -104,7 +110,13 @@ def get_project(id, u=None):
                     "description": task.description,
                     "due": task.due,
                     "completed": task.completed,
-                    "labels": [label for label in task.labels]
+                    "labels": [
+                        {
+                            "id": label.label.id,
+                            "name": label.label.name,
+                            "color": label.label.name
+                        } for label in task.labels
+                    ]
                 } for task in project.tasks
             ],
             "labels": [
@@ -146,7 +158,13 @@ def get_projects(u=None):
                             "description": task.description,
                             "due": task.due,
                             "completed": task.completed,
-                            "labels": [label for label in task.labels]
+                            "labels": [
+                                {
+                                    "id": label.label.id,
+                                    "name": label.label.name,
+                                    "color": label.label.name
+                                } for label in task.labels
+                            ]
                         } for task in project.tasks
                     ],
                     "labels": [
@@ -220,7 +238,13 @@ def uptade_project(id, u=None):
                         "description": task.description,
                         "due": task.due,
                         "completed": task.completed,
-                        "labels": [label for label in task.labels]
+                        "labels": [
+                            {
+                                "id": label.label.id,
+                                "name": label.label.name,
+                                "color": label.label.name
+                            } for label in task.labels
+                        ]
                     } for task in project.tasks
                 ],
                 "labels": [
