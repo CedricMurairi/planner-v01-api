@@ -59,7 +59,13 @@ def create_task(u=None):
             },
             "due": task.due,
             "completed": task.completed,
-            "labels": [label for label in task.labels]
+            "labels": [
+                {
+                    "id": label.label.id,
+                    "name": label.label.name,
+                    "color": label.label.name
+                } for label in task.labels
+            ]
         }
     }, 200
 
@@ -92,7 +98,13 @@ def get_task(id, u=None):
             },
             "due": task.due,
             "completed": task.completed,
-            "labels": [label for label in task.labels] 
+            "labels": [
+                {
+                    "id": label.label.id,
+                    "name": label.label.name,
+                    "color": label.label.name
+                } for label in task.labels
+            ] 
         }
     }, 200
 
@@ -124,7 +136,13 @@ def get_tasks(u=None):
                     },
                     "due": task.due,
                     "completed": task.completed,
-                    "labels": [label for label in task.labels]
+                    "labels": [
+                        {
+                            "id": label.label.id,
+                            "name": label.label.name,
+                            "color": label.label.name
+                        } for label in task.labels
+                    ]
                 } for task in tasks
             ]
         }, 200
@@ -188,7 +206,13 @@ def uptade_task(id, u=None):
                 },
                 "due": task.due,
                 "completed": task.completed,
-                "labels": [label for label in task.labels]
+                "labels": [
+                    {
+                        "id": label.label.id,
+                        "name": label.label.name,
+                        "color": label.label.name
+                    } for label in task.labels
+                ]
             }
         }, 200
 
@@ -227,14 +251,14 @@ def add_task_label(id, u=None):
         abort(400)
 
     labels = request.json.get('labels')
-    if labels and len(labels > 0):
+    if labels and len(labels) > 0:
         for label in labels:
             if Label.query.get(label) and not TaskLabel.query.filter_by(label_id=label, task_id=id).first():
                 t_label = TaskLabel(task_id=id, label_id=label)
                 db.session.add(t_label)
                 db.session.commit()
         return {
-            "message": "Label was deleted successfully"
+            "message": "Label was created successfully"
         }, 200
 
     abort(400)
